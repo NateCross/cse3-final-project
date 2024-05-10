@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import math
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 # CONSTANTS
 
@@ -102,24 +103,92 @@ def handle_search_form(
             st.write(f'Searching for {artist_search}...')
     return form
 
+def get_grid_options(df: pd.DataFrame):
+    """
+    Build grid options for dataframe display
+    """
+    gb = GridOptionsBuilder.from_dataframe(df)
+
+    gb.configure_default_column(
+        resizable=True,
+        filterable=True,
+        sortable=True,
+        editable=False,
+    )
+
+    gb.configure_selection(
+        selection_mode="single",
+    )
+
+    # gb.configure_side_bar()
+
+    grid_options = gb.build()
+
+    return grid_options
+
 def handle_dataframe(DATA):
     # container = st.cont
     DATA = filter_data(
         DATA,
         st.session_state.artist,
     )
+
     st.dataframe(
         DATA,
         # hide_index=True,
+        column_order=(
+            "Artist",
+            "Track",
+            "Album",
+            "Stream",
+            "Views",
+            "Likes",
+            "Danceability",
+            "Energy",
+            "Speechiness",
+            "Acousticness",
+            "Instrumentalness",
+            "Liveness",
+            "Valence",
+            "Url_youtube",
+        ),
         column_config={
-            'Danceability': st.column_config.ProgressColumn(),
-            'Energy': st.column_config.ProgressColumn(),
+            'Stream': st.column_config.Column(
+                "Streams",
+                help="Number of streams of the song on Spotify",
+            ),
+            'Views': st.column_config.Column(
+                help="Number of views of the song on Youtube",
+            ),
+            'Likes': st.column_config.Column(
+                help="Number of likes of the song on Youtube",
+            ),
+            'Url_youtube': st.column_config.LinkColumn(
+        'Youtube Link',
+    ),
+            'Speechiness': st.column_config.ProgressColumn(
+                help="detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks.",
+            ),
+            'Acousticness': st.column_config.ProgressColumn(
+                help="a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.",
+            ),
+            'Instrumentalness': st.column_config.ProgressColumn(
+                help="predicts whether a track contains no vocals. 'Ooh' and 'aah' sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly 'vocal'. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+            ),
+            'Liveness': st.column_config.ProgressColumn(),
+            'Valence': st.column_config.ProgressColumn(),
+            'Danceability': st.column_config.ProgressColumn(
+                help="describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.",
+            ),
+            'Energy': st.column_config.ProgressColumn(
+                help=" is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+            ),
         }
     )
 
 def main_layout(DATA, artists):
     st.title(":musical_note: Spotify Artists' Top Tens :musical_note:")
-    with st.expander('Search'):
+    with st.expander('Select an artist'):
         form = handle_search_form(DATA, artists)
     handle_dataframe(DATA)
 
