@@ -1,5 +1,4 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
 import math
 import streamlit_extras.row
@@ -71,20 +70,7 @@ def filter_data(
 
         return df
 
-    
-def paginate_data(
-        df: pd.DataFrame,
-        page_number = 1,
-    ):
-
-        # Validate number of pages
-        max_num_of_pages = get_num_of_pages(df)
-
-        if not 1 <= page_number <= max_num_of_pages:
-            return df
-
 def handle_search_form(
-        data: pd.DataFrame,
         artists,
     ):
     form = st.form('search_form')
@@ -100,7 +86,7 @@ def handle_search_form(
             key='artist',
         )
 
-        submitted = st.form_submit_button("Search")
+        st.form_submit_button("Search")
         if artist_search:
             st.write(f'Searching for {artist_search}...')
     return form
@@ -228,9 +214,7 @@ def handle_filtered_data_metrics(DATA):
         st.info("Select an artist to see their engagement metrics.")
         return
 
-    artist_metrics_row = streamlit_extras.row.row(
-        4,
-    )
+    artist_metrics_row = streamlit_extras.row.row(4)
 
     artist_metrics_row.metric(
         'Artist',
@@ -288,7 +272,7 @@ def main_layout(DATA, artists):
     """)
 
     with st.expander('**Selection**'):
-        handle_search_form(DATA, artists)
+        handle_search_form(artists)
         handle_filtered_data_metrics(DATA)
 
     st.divider()
@@ -304,7 +288,6 @@ def main_layout(DATA, artists):
     """)
 
     handle_characteristic_vs_metric_plot(DATA)
-
 
 if __name__ == '__main__':
     st.set_page_config(layout="wide")
