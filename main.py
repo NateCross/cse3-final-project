@@ -164,6 +164,54 @@ def handle_metric_vs_characteristic_plot(DATA):
     Scatter plot that lets user select an engagement metric
     and see its correlation with a track characteristic
     """
+    with st.container(border=True):
+        selection_row = streamlit_extras.row.row(5)
+
+        # Define the selection of metric and characteristic
+        # The empty methods are used to add padding
+        selection_row.empty()
+
+        characteristic = selection_row.radio(
+            "**Track Characteristic**",
+            [
+                "Danceability", 
+                "Energy", 
+                "Speechiness",
+                "Acousticness",
+                "Instrumentalness",
+                "Liveness",
+                "Valence",
+            ],
+            captions=[
+                "Number of streams on Spotify",
+                "Number of views on its Youtube video",
+                "Number of likes on its Youtube video",
+            ],
+        )
+
+
+        selection_row.empty()
+
+        metric = selection_row.radio(
+            "**Engagement Metric**",
+            ["Stream", "Views", "Likes"],
+            captions=[
+                "Number of streams on Spotify",
+                "Number of views on its Youtube video",
+                "Number of likes on its Youtube video",
+            ],
+        )
+
+        selection_row.empty()
+
+        st.divider()
+
+        st.scatter_chart(
+            DATA,
+            x=characteristic,
+            y=metric,
+        )
+        
 
 def handle_filtered_data_metrics(DATA):
     """
@@ -197,10 +245,11 @@ def handle_filtered_data_metrics(DATA):
         help="The average number of likes the artists' top ten songs have on Youtube videos",
     )
 
-    st.write("Hi test")
+    handle_metric_vs_characteristic_plot(DATA)
 
     style_metric_cards(
         background_color='#0E1117',
+        border_color='#3D4044',
         border_left_color=None,
     )
 
