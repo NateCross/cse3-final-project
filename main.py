@@ -140,26 +140,30 @@ def handle_dataframe(DATA):
         'Youtube Link',
     ),
             'Speechiness': st.column_config.ProgressColumn(
-                help="detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks.",
+                help="Detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks.",
             ),
             'Acousticness': st.column_config.ProgressColumn(
-                help="a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.",
+                help="A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.",
             ),
             'Instrumentalness': st.column_config.ProgressColumn(
-                help="predicts whether a track contains no vocals. 'Ooh' and 'aah' sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly 'vocal'. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+                help="Predicts whether a track contains no vocals. 'Ooh' and 'aah' sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly 'vocal'. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
             ),
-            'Liveness': st.column_config.ProgressColumn(),
-            'Valence': st.column_config.ProgressColumn(),
+            'Liveness': st.column_config.ProgressColumn(
+                help="detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+            ),
+            'Valence': st.column_config.ProgressColumn(
+                help="A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+            ),
             'Danceability': st.column_config.ProgressColumn(
-                help="describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.",
+                help="Describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.",
             ),
             'Energy': st.column_config.ProgressColumn(
-                help=" is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+                help="Is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
             ),
         }
     )
 
-def handle_metric_vs_characteristic_plot(DATA):
+def handle_characteristic_vs_metric_plot(DATA):
     """
     Scatter plot that lets user select an engagement metric
     and see its correlation with a track characteristic
@@ -183,12 +187,15 @@ def handle_metric_vs_characteristic_plot(DATA):
                 "Valence",
             ],
             captions=[
-                "Number of streams on Spotify",
-                "Number of views on its Youtube video",
-                "Number of likes on its Youtube video",
+                "How suitable a track is for dancing",
+                "How intense and active a song is",
+                "How present spoken words are in the song",
+                "How likely the song is acoustic",
+                "How likely a song contains no vocals",
+                "How present an audience is in the song",
+                "How musically positive a song is",
             ],
         )
-
 
         selection_row.empty()
 
@@ -218,7 +225,7 @@ def handle_filtered_data_metrics(DATA):
     Use this function after filtering data to get metrics
     """
     if not st.session_state.artist:
-        st.write("Select an artist to see their metrics.")
+        st.info("Select an artist to see their engagement metrics.")
         return
 
     artist_metrics_row = streamlit_extras.row.row(
@@ -245,8 +252,6 @@ def handle_filtered_data_metrics(DATA):
         help="The average number of likes the artists' top ten songs have on Youtube videos",
     )
 
-    handle_metric_vs_characteristic_plot(DATA)
-
     style_metric_cards(
         background_color='#0E1117',
         border_color='#3D4044',
@@ -259,9 +264,11 @@ def main_layout(DATA, artists):
         ":musical_note: Spotify Artists' Top Tens :musical_note:"
     )
 
-    # Search form
-    with st.expander('Select an artist'):
-        form = handle_search_form(DATA, artists)
+    st.write("""
+        Welcome to the Spotify Artists' Top Tens data visualization app.
+
+        Here you can see the top ten songs by Spotify streams of various artists. Each song also has several characteristics; you can hover over the column name to find out more about it.
+    """)
 
     # Filter data after getting the search
     DATA = filter_data(
@@ -273,7 +280,31 @@ def main_layout(DATA, artists):
 
     st.divider()
 
-    handle_filtered_data_metrics(DATA)
+    # Search form
+    st.header("Select an artist")
+
+    st.write("""
+        Here you can search for a specific artist to find their top ten songs in the table above. You can also find out about the average of the engagement metrics of their top ten songs.
+    """)
+
+    with st.expander('**Selection**'):
+        handle_search_form(DATA, artists)
+        handle_filtered_data_metrics(DATA)
+
+    st.divider()
+
+    # Characteristic vs metric plot
+    
+    st.header("Characteristic vs Metric Plot")
+
+    st.write("""
+        Here you can see a plot asking the question, 'what is the correlation between a song characteristic and their engagement?'
+
+        You can choose which characteristic and metric to correlate in the selection below. If you selected an artist, you will be able to see the points for that artist's songs.
+    """)
+
+    handle_characteristic_vs_metric_plot(DATA)
+
 
 if __name__ == '__main__':
     st.set_page_config(layout="wide")
@@ -281,6 +312,7 @@ if __name__ == '__main__':
     DATA = load_data()
 
     if DATA is None:
+        print("ERROR: Data not found")
         exit(1)
 
     artists = get_artists(DATA)
