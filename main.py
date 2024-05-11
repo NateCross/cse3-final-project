@@ -293,7 +293,7 @@ if __name__ == '__main__':
     st.set_page_config(layout="wide")
 
     if 'artist' not in st.session_state:
-        st.session_state.artist = ''
+        st.session_state.artist = None
 
     DATA = load_data()
 
