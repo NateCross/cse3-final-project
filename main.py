@@ -2,7 +2,8 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import math
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+import streamlit_extras.row
+from streamlit_extras.metric_cards import style_metric_cards
 
 # CONSTANTS
 
@@ -90,6 +91,7 @@ def handle_search_form(
     with form:
         st.markdown('''
             Search for an artist to see their top ten tracks.
+            Clear the selection and click "search" to show all tracks.
         ''')
         artist_search = st.selectbox(
             'Artist:',
@@ -103,39 +105,10 @@ def handle_search_form(
             st.write(f'Searching for {artist_search}...')
     return form
 
-def get_grid_options(df: pd.DataFrame):
-    """
-    Build grid options for dataframe display
-    """
-    gb = GridOptionsBuilder.from_dataframe(df)
-
-    gb.configure_default_column(
-        resizable=True,
-        filterable=True,
-        sortable=True,
-        editable=False,
-    )
-
-    gb.configure_selection(
-        selection_mode="single",
-    )
-
-    # gb.configure_side_bar()
-
-    grid_options = gb.build()
-
-    return grid_options
-
 def handle_dataframe(DATA):
-    # container = st.cont
-    DATA = filter_data(
-        DATA,
-        st.session_state.artist,
-    )
-
+    # Create dataframe showing all the data
     st.dataframe(
         DATA,
-        # hide_index=True,
         column_order=(
             "Artist",
             "Track",
@@ -186,13 +159,76 @@ def handle_dataframe(DATA):
         }
     )
 
+def handle_metric_vs_characteristic_plot(DATA):
+    """
+    Scatter plot that lets user select an engagement metric
+    and see its correlation with a track characteristic
+    """
+
+def handle_filtered_data_metrics(DATA):
+    """
+    Use this function after filtering data to get metrics
+    """
+    if not st.session_state.artist:
+        st.write("Select an artist to see their metrics.")
+        return
+
+    artist_metrics_row = streamlit_extras.row.row(
+        4,
+    )
+
+    artist_metrics_row.metric(
+        'Artist',
+        value=st.session_state.artist,
+    )
+    artist_metrics_row.metric(
+        'Average Streams',
+        value=f"{DATA['Stream'].mean():,.2f}",
+        help="The average number of streams the artists' top ten songs have on Spotify",
+    )
+    artist_metrics_row.metric(
+        'Average Views',
+        value=f"{DATA['Views'].mean():,.2f}",
+        help="The average number of views the artists' top ten songs have on their Youtube videos",
+    )
+    artist_metrics_row.metric(
+        'Average Likes',
+        value=f"{DATA['Likes'].mean():,.2f}",
+        help="The average number of likes the artists' top ten songs have on Youtube videos",
+    )
+
+    st.write("Hi test")
+
+    style_metric_cards(
+        background_color='#0E1117',
+        border_left_color=None,
+    )
+
 def main_layout(DATA, artists):
-    st.title(":musical_note: Spotify Artists' Top Tens :musical_note:")
+    # Title text
+    st.title(
+        ":musical_note: Spotify Artists' Top Tens :musical_note:"
+    )
+
+    # Search form
     with st.expander('Select an artist'):
         form = handle_search_form(DATA, artists)
+
+    # Filter data after getting the search
+    DATA = filter_data(
+        DATA,
+        st.session_state.artist,
+    )
+
     handle_dataframe(DATA)
 
+    st.divider()
+
+    handle_filtered_data_metrics(DATA)
+
 if __name__ == '__main__':
+    st.set_page_config(layout="wide")
+
     DATA = load_data()
 
     if DATA is None:
@@ -204,9 +240,3 @@ if __name__ == '__main__':
 
     main_layout(DATA, artists)
 
-
-# dataframe = pd.DataFrame(
-#     np.random.randn(10, 20),
-#     columns=('col %d' % i for i in range(20)))
-#
-# st.dataframe(dataframe.style.highlight_max(axis=0))
