@@ -292,6 +292,9 @@ def main_layout(DATA, artists):
 if __name__ == '__main__':
     st.set_page_config(layout="wide")
 
+    if 'artist' not in st.session_state:
+        st.session_state.artist = ''
+
     DATA = load_data()
 
     if DATA is None:
