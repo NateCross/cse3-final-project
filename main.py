@@ -295,7 +295,8 @@ if __name__ == '__main__':
     if 'artist' not in st.session_state:
         st.session_state.artist = None
 
-    DATA = load_data()
+    with st.spinner('Loading dataset...'):
+        DATA = load_data()
 
     if DATA is None:
         print("ERROR: Data not found")
